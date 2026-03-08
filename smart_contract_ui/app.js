@@ -64,25 +64,14 @@ async function initEthers() {
 }
 
 async function setupWallet() {
-    // Check if user has explicitely connected via Metamask before
-    // For now, we default to dummy wallet unless they click Provider Connect.
+    // Hardcoded FIXED dummy wallet for all users on testnet
+    // NEVER use this private key on mainnet as it is public
+    const FIXED_PRIVATE_KEY = "0x8fa40e2d3ebbba9d8c0b2fef4515bd3a02a4bf746b149b1aaffbd30f55cf5fc3";
 
-    const storedKey = localStorage.getItem('dummy_wallet_key');
-
-    if (storedKey) {
-        logToConsole('Found existing dummy wallet.', 'info');
-        signer = new ethers.Wallet(storedKey, provider);
-        walletAddress = signer.address;
-        isDummyWallet = true;
-    } else {
-        logToConsole('No wallet found. Generating new dummy wallet...', 'info');
-        const randomWallet = ethers.Wallet.createRandom();
-        localStorage.setItem('dummy_wallet_key', randomWallet.privateKey);
-        signer = randomWallet.connect(provider);
-        walletAddress = signer.address;
-        isDummyWallet = true;
-        logToConsole(`Generated new wallet: ${walletAddress}`, 'success');
-    }
+    logToConsole('Loading fixed dummy testnet wallet...', 'info');
+    signer = new ethers.Wallet(FIXED_PRIVATE_KEY, provider);
+    walletAddress = signer.address;
+    isDummyWallet = true;
 
     updateWalletUI();
 }
