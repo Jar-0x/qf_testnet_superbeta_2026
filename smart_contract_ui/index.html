@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QF Game - Smart Contract Interface</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- Ethers.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="navbar glass-panel">
+            <div class="brand">
+                <div class="logo-glow"></div>
+                <h1>QF <span class="highlight">Terminal</span></h1>
+            </div>
+
+            <div class="network-status">
+                <span class="status-dot"></span> AVAX Fuji Testnet
+            </div>
+
+            <div class="wallet-section">
+                <div class="wallet-info" id="walletInfo">
+                    <span class="wallet-label" id="walletLabel">Dummy Wallet (Auto)</span>
+                    <span class="wallet-address" id="walletAddress">0x...</span>
+                </div>
+                <button id="connectWalletBtn" class="btn btn-primary">Connect Provider</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="content-grid">
+
+            <!-- Left Column: Forms and Actions -->
+            <div class="action-panels">
+
+                <!-- Registration & Account (A0) -->
+                <section class="panel glass-panel" id="panel-account">
+                    <div class="panel-header" style="cursor: pointer;" onclick="togglePanel('a0-body')"
+                        title="Click to collapse/expand">
+                        <h2>A0_QF_RegistrationAccount_A</h2>
+                        <span class="badge">A0 Contract ▼</span>
+                    </div>
+                    <div class="panel-body" id="a0-body">
+                        <!-- Dynamic functions will be injected here -->
+                    </div>
+                </section>
+
+                <!-- Data Fetching (P5) -->
+                <section class="panel glass-panel" id="panel-read">
+                    <div class="panel-header" style="cursor: pointer;" onclick="togglePanel('p5-body')"
+                        title="Click to collapse/expand">
+                        <h2>P5_QF_HandshakingRead_A</h2>
+                        <span class="badge badge-blue">P5 Contract ▼</span>
+                    </div>
+                    <div class="panel-body" id="p5-body">
+                        <!-- Dynamic functions will be injected here -->
+                    </div>
+                </section>
+
+                <!-- World Interactions (P0) -->
+                <section class="panel glass-panel border-accent" id="panel-write">
+                    <div class="panel-header" style="cursor: pointer;" onclick="togglePanel('p0-body')"
+                        title="Click to collapse/expand">
+                        <h2>P0_QF_HandshakingWrite_A</h2>
+                        <span class="badge badge-red">P0 Contract ▼</span>
+                    </div>
+                    <div class="panel-body" id="p0-body">
+                        <!-- Dynamic functions will be injected here -->
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Right Column: Console UI -->
+            <div class="console-panel glass-panel">
+                <div class="console-header">
+                    <div class="window-controls">
+                        <i></i><i></i><i></i>
+                    </div>
+                    <span>Transaction Terminal</span>
+                    <button id="btnClearConsole" class="btn-icon" title="Clear Console">✕</button>
+                </div>
+                <div class="console-body" id="consoleOutput">
+                    <div class="log-entry system">[SYSTEM] Terminal initialized.</div>
+                    <div class="log-entry system">[SYSTEM] Connecting to Fuji Testnet provider...</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Import ABIs -->
+    <script src="A0_QF_RegistrationAccount_A.js"></script>
+    <script src="P0_QF_HandshakingWrite_A.js"></script>
+    <script src="P5_QF_HandshakingRead_A.js"></script>
+
+    <!-- Main App Logic -->
+    <script src="app.js"></script>
+</body>
+
+</html>
