@@ -265,11 +265,14 @@ body.dark-theme {
 .input-field {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    /* More square like Remix */
+    padding: 0.35rem 0.6rem;
+    /* Tighter padding */
     color: var(--text-main);
     font-family: var(--font-mono);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    /* Smaller font like Remix */
     transition: border-color 0.2s;
     width: 100%;
     outline: none;
@@ -305,9 +308,11 @@ body.dark-theme {
     cursor: pointer;
     font-family: var(--font-ui);
     font-weight: 500;
-    font-size: 0.9rem;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
+    font-size: 0.8rem;
+    /* Smaller font */
+    padding: 0.4rem 1rem;
+    /* Tighter padding */
+    border-radius: 4px;
     border: none;
     transition: all 0.2s ease;
     display: inline-flex;
@@ -329,26 +334,29 @@ body.dark-theme {
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
+/* Remix-like buttons */
 .btn-read {
-    background: rgba(6, 182, 212, 0.15);
-    color: var(--accent-cyan-hover);
-    border: 1px solid rgba(6, 182, 212, 0.3);
+    background: #4fb2f0;
+    /* Remix 'call' button light blue */
+    color: #0b0f19;
+    border: none;
+    font-weight: 600;
 }
 
 .btn-read:hover {
-    background: rgba(6, 182, 212, 0.25);
-    border-color: rgba(6, 182, 212, 0.5);
+    background: #6fc2f4;
 }
 
 .btn-write {
-    background: rgba(249, 115, 22, 0.15);
-    color: var(--accent-orange-hover);
-    border: 1px solid rgba(249, 115, 22, 0.3);
+    background: #e8a841;
+    /* Remix transact orangeish */
+    color: #0b0f19;
+    border: none;
+    font-weight: 600;
 }
 
 .btn-write:hover {
-    background: rgba(249, 115, 22, 0.25);
-    border-color: rgba(249, 115, 22, 0.5);
+    background: #efbc65;
 }
 
 .btn-icon {
@@ -533,8 +541,8 @@ body.dark-theme {
 
 /* Dynamic ABI classes */
 .doc-group {
-    padding-bottom: 1rem;
-    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -545,19 +553,72 @@ body.dark-theme {
 }
 
 .func-label {
-    font-size: 1rem !important;
-    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    /* Smaller label header */
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    color: var(--text-muted) !important;
+    /* Remix uses muted grey headers */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.func-label:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.func-body {
+    padding: 0.75rem 0.5rem;
     display: block;
+    /* Default open */
+}
+
+/* Align inputs like Remix (label left, input right) */
+.input-row-remix {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
+.input-row-remix label {
+    width: 30%;
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+/* Override previous column layout if using new row layout */
 .input-col {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
 }
 
 .exec-btn {
+    margin-top: 0.5rem;
+    /* Remix aligns call button to the right */
+    align-self: flex-end;
+    margin-left: auto;
+    display: block;
+}
+
+.inline-readback {
     margin-top: 0.75rem;
-    width: 100%;
+    padding: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-main);
+    background: rgba(0, 0, 0, 0.4);
+    border-left: 3px solid var(--accent-blue);
+    border-radius: 4px;
+    word-break: break-all;
+    white-space: pre-wrap;
 }

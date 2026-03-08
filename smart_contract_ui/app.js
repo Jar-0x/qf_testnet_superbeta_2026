@@ -145,10 +145,13 @@ function initContracts() {
 // -----------------------------------------
 function togglePanel(id) {
     const el = document.getElementById(id);
+    const badge = el.previousElementSibling.querySelector('.badge');
     if (el.style.display === 'none') {
         el.style.display = 'block';
+        if (badge) badge.textContent = badge.textContent.replace('▶', '▼');
     } else {
         el.style.display = 'none';
+        if (badge) badge.textContent = badge.textContent.replace('▼', '▶');
     }
 }
 
@@ -239,10 +242,33 @@ function generateUI(abi, containerId, contractInstance) {
         const group = document.createElement('div');
         group.className = 'form-group doc-group';
 
-        const label = document.createElement('label');
-        label.textContent = func.name;
+        // Create header label with toggle arrow
+        const label = document.createElement('div');
         label.className = 'func-label';
-        label.style.color = labelColor;
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = func.name;
+
+        const arrowSpan = document.createElement('span');
+        arrowSpan.textContent = '▶';
+
+        label.appendChild(titleSpan);
+        label.appendChild(arrowSpan);
+
+        const funcBody = document.createElement('div');
+        funcBody.className = 'func-body';
+        funcBody.style.display = 'none';
+
+        // Toggle logic
+        label.onclick = () => {
+            if (funcBody.style.display === 'none') {
+                funcBody.style.display = 'block';
+                arrowSpan.textContent = '▼';
+            } else {
+                funcBody.style.display = 'none';
+                arrowSpan.textContent = '▶';
+            }
+        };
         group.appendChild(label);
 
         const inputsDiv = document.createElement('div');
@@ -257,43 +283,58 @@ function generateUI(abi, containerId, contractInstance) {
                 const inputId = `${containerId}-${func.name}-arg-${idx}`;
                 inputIds.push({ id: inputId, type: inp.type });
 
+                // Remix row container
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'input-row-remix';
+
+                const inpLabel = document.createElement('label');
+                inpLabel.textContent = `${inp.name || 'arg' + idx}:`;
+
                 const inputEl = document.createElement('input');
                 inputEl.type = 'text';
                 inputEl.id = inputId;
-                inputEl.placeholder = `${inp.name || 'arg' + idx} (${inp.type})`;
                 inputEl.className = 'input-field';
 
                 if (inp.type.includes('tuple') || inp.type.includes('[')) {
-                    inputEl.placeholder += ' -> [JSON format]';
+                    inputEl.placeholder = `[JSON array/tuple]`;
 
                     if (!isRead) {
                         needsExampleBox = true;
                         const exampleVal = getExampleInput(inp.type, inp.internalType || inp.name);
                         exampleBoxHTML += `<strong>${inp.name || 'arg'}:</strong><div class="copy-area" onclick="navigator.clipboard.writeText(this.innerText); alert('Copied!')" title="Click to copy">${exampleVal}</div>`;
                     }
+                } else {
+                    inputEl.placeholder = `${inp.type}`;
                 }
 
-                inputsDiv.appendChild(inputEl);
+                rowDiv.appendChild(inpLabel);
+                rowDiv.appendChild(inputEl);
+                inputsDiv.appendChild(rowDiv);
             });
-            group.appendChild(inputsDiv);
+            funcBody.appendChild(inputsDiv);
 
             // Append copy-paste box if needed
             if (needsExampleBox) {
                 const exBox = document.createElement('div');
                 exBox.className = 'example-box';
                 exBox.innerHTML = `<strong>Data Examples:</strong>${exampleBoxHTML}`;
-                group.appendChild(exBox);
+                funcBody.appendChild(exBox);
             }
         } else {
             const noArgs = document.createElement('p');
             noArgs.className = 'helper-text';
             noArgs.textContent = 'No arguments required.';
-            group.appendChild(noArgs);
+            funcBody.appendChild(noArgs);
         }
 
         const btn = document.createElement('button');
         btn.className = `btn ${btnClass} exec-btn`;
-        btn.textContent = `Execute ${func.name}`;
+        btn.textContent = isRead ? 'call' : 'transact';
+
+        // Output container for readbacks
+        const outputDiv = document.createElement('div');
+        outputDiv.className = 'inline-readback';
+        outputDiv.style.display = 'none';
 
         btn.onclick = async () => {
             try {
@@ -321,7 +362,42 @@ function generateUI(abi, containerId, contractInstance) {
 
                 if (isRead) {
                     logToConsole(`${func.name} Success!`, 'success');
-                    logToConsole(result, 'info');
+
+                    // Format readback output
+                    let outStr = '';
+                    if (func.outputs && func.outputs.length > 0) {
+                        if (Array.isArray(result) || result.length !== undefined) {
+                            // Multiple return values or tuple
+                            if (typeof result !== 'string' && result[0] !== undefined) {
+                                func.outputs.forEach((outDef, index) => {
+                                    let val = result[index];
+                                    if (typeof val === 'bigint') val = val.toString();
+                                    else if (Array.isArray(val) || typeof val === 'object') {
+                                        val = JSON.stringify(val, (k, v) => typeof v === 'bigint' ? v.toString() : v);
+                                    }
+                                    outStr += `**${index}**: ${outDef.type} ${outDef.name ? outDef.name : ''}\n${val}\n\n`;
+                                });
+                            } else {
+                                // Single return array
+                                let val = result;
+                                if (Array.isArray(val) || typeof val === 'object') {
+                                    val = JSON.stringify(val, (k, v) => typeof v === 'bigint' ? v.toString() : v);
+                                }
+                                outStr += `**0**: ${func.outputs[0].type} ${func.outputs[0].name ? func.outputs[0].name : ''}\n${val}`;
+                            }
+                        } else {
+                            // Single primitive return value
+                            let val = typeof result === 'bigint' ? result.toString() : result;
+                            outStr += `**0**: ${func.outputs[0].type} ${func.outputs[0].name ? func.outputs[0].name : ''}\n${val}`;
+                        }
+                    } else {
+                        outStr = typeof result === 'object' ? JSON.stringify(result, (k, v) => typeof v === 'bigint' ? v.toString() : v) : String(result);
+                    }
+
+                    outputDiv.style.display = 'block';
+                    // Sanitize innerHTML safely, or use textContent carefully. Since we use literal **0**, we'll just format manually
+                    outputDiv.innerHTML = outStr.replace(/\*\*(.*?)\*\*/g, '<strong style="color:white">$1</strong>');
+
                 } else {
                     logToConsole(`Tx Hash: ${result.hash}`, 'info');
                     const receipt = await result.wait();
@@ -329,9 +405,23 @@ function generateUI(abi, containerId, contractInstance) {
                 }
             } catch (error) {
                 logToConsole(`Revert: error: ${error.shortMessage || error.message}`, 'error');
+
+                // Show error inline for immediate feedback
+                outputDiv.style.display = 'block';
+                outputDiv.style.borderLeftColor = 'var(--accent-red)';
+                outputDiv.textContent = `Error: ${error.shortMessage || error.message}`;
             }
         };
-        group.appendChild(btn);
+
+        // Append elements
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex';
+        btnRow.appendChild(btn);
+
+        funcBody.appendChild(btnRow);
+        funcBody.appendChild(outputDiv);
+
+        group.appendChild(funcBody);
         container.appendChild(group);
     });
 }
