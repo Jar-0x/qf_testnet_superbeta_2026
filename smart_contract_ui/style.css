@@ -510,8 +510,13 @@ body.dark-theme {
 }
 
 .log-entry.pending {
-    color: var(--win-min);
-    animation: blink 1.5s infinite;
+    color: var(--accent-orange);
+    border-left-color: var(--accent-orange);
+}
+
+.log-entry.pending::before {
+    content: "•";
+    color: var(--accent-orange);
 }
 
 @keyframes blink {

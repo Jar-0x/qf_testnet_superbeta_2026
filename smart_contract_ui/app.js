@@ -61,6 +61,20 @@ async function initEthers() {
 
     // Initialize Contracts
     initContracts();
+
+    // Start random 30-40s polling interval for gas balance
+    const pollGasBalance = async () => {
+        try {
+            await updateWalletUI();
+        } catch (e) {
+            console.error("Gas polling failed", e);
+        }
+        const nextDelay = Math.floor(Math.random() * 10000) + 30000; // 30,000ms to 40,000ms
+        setTimeout(pollGasBalance, nextDelay);
+    };
+
+    // Kickoff the loop
+    setTimeout(pollGasBalance, 30000);
 }
 
 async function setupWallet() {
@@ -73,7 +87,7 @@ async function setupWallet() {
     walletAddress = signer.address;
     isDummyWallet = true;
 
-    updateWalletUI();
+    await updateWalletUI();
 }
 
 async function connectBrowserProvider() {
@@ -92,7 +106,7 @@ async function connectBrowserProvider() {
 
             // Optional: You could check/switch to Fuji Network here, but we will leave it simple.
             initContracts(); // re-init with new signer
-            updateWalletUI();
+            await updateWalletUI();
 
         } catch (error) {
             logToConsole(`Provider connection failed: ${error.message}`, 'error');
@@ -102,11 +116,30 @@ async function connectBrowserProvider() {
     }
 }
 
-function updateWalletUI() {
+async function updateWalletUI() {
     walletInfoLabel.textContent = isDummyWallet ? "Dummy Wallet (Local)" : "Connected Wallet";
     walletInfoLabel.style.color = isDummyWallet ? "var(--win-min)" : "var(--accent-green)";
 
     walletInfoAddress.innerHTML = `${walletAddress} <span style="cursor:pointer; margin-left:8px; opacity:0.8; font-size:1rem;" title="Copy Address" onclick="navigator.clipboard.writeText('${walletAddress}'); alert('Wallet Address copied to clipboard!');">📋</span>`;
+
+    // Fetch and display balance
+    try {
+        const balanceWei = await provider.getBalance(walletAddress);
+        // Convert to ether string (AVAX) and safely isolate 9 decimals
+        let balanceEth = ethers.formatEther(balanceWei);
+        // Format to exactly 9 decimals
+        let parts = balanceEth.split('.');
+        if (parts.length === 2 && parts[1].length > 9) {
+            balanceEth = `${parts[0]}.${parts[1].substring(0, 9)}`;
+        }
+
+        const balanceEl = document.getElementById('walletBalance');
+        if (balanceEl) {
+            balanceEl.textContent = `${balanceEth} AVAX`;
+        }
+    } catch (e) {
+        console.error("Failed to fetch balance", e);
+    }
 }
 
 btnConnect.addEventListener('click', connectBrowserProvider);
@@ -355,29 +388,28 @@ function generateUI(abi, containerId, contractInstance) {
                     // Format readback output
                     let outStr = '';
                     if (func.outputs && func.outputs.length > 0) {
-                        if (Array.isArray(result) || result.length !== undefined) {
-                            // Multiple return values or tuple
-                            if (typeof result !== 'string' && result[0] !== undefined) {
-                                func.outputs.forEach((outDef, index) => {
-                                    let val = result[index];
-                                    if (typeof val === 'bigint') val = val.toString();
-                                    else if (Array.isArray(val) || typeof val === 'object') {
-                                        val = JSON.stringify(val, (k, v) => typeof v === 'bigint' ? v.toString() : v);
-                                    }
-                                    outStr += `**${index}**: ${outDef.type} ${outDef.name ? outDef.name : ''}\n${val}\n\n`;
-                                });
-                            } else {
-                                // Single return array
-                                let val = result;
-                                if (Array.isArray(val) || typeof val === 'object') {
-                                    val = JSON.stringify(val, (k, v) => typeof v === 'bigint' ? v.toString() : v);
+                        const formatEthersResult = (val) => {
+                            if (typeof val === 'bigint') return val.toString();
+                            if (typeof val === 'object' && val !== null) {
+                                // Convert ethers Result proxy to a clean array to prevent object stringification issues
+                                if (val.length !== undefined) {
+                                    return JSON.stringify(Array.from(val), (k, v) => typeof v === 'bigint' ? v.toString() : v);
                                 }
-                                outStr += `**0**: ${func.outputs[0].type} ${func.outputs[0].name ? func.outputs[0].name : ''}\n${val}`;
+                                return JSON.stringify(val, (k, v) => typeof v === 'bigint' ? v.toString() : v);
                             }
+                            return String(val);
+                        };
+
+                        if (func.outputs.length === 1) {
+                            // Single output: result IS the value
+                            let formatted = formatEthersResult(result);
+                            outStr += `**0**: ${func.outputs[0].type} ${func.outputs[0].name ? func.outputs[0].name : ''}\n${formatted}`;
                         } else {
-                            // Single primitive return value
-                            let val = typeof result === 'bigint' ? result.toString() : result;
-                            outStr += `**0**: ${func.outputs[0].type} ${func.outputs[0].name ? func.outputs[0].name : ''}\n${val}`;
+                            // Multiple outputs: result is an array-like object of values
+                            func.outputs.forEach((outDef, index) => {
+                                let formatted = formatEthersResult(result[index]);
+                                outStr += `**${index}**: ${outDef.type} ${outDef.name ? outDef.name : ''}\n${formatted}\n\n`;
+                            });
                         }
                     } else {
                         outStr = typeof result === 'object' ? JSON.stringify(result, (k, v) => typeof v === 'bigint' ? v.toString() : v) : String(result);
@@ -386,11 +418,23 @@ function generateUI(abi, containerId, contractInstance) {
                     outputDiv.style.display = 'block';
                     // Sanitize innerHTML safely, or use textContent carefully. Since we use literal **0**, we'll just format manually
                     outputDiv.innerHTML = outStr.replace(/\*\*(.*?)\*\*/g, '<strong style="color:white">$1</strong>');
-
                 } else {
                     logToConsole(`Tx Hash: ${result.hash}`, 'info');
+
+                    // Show pending state inline quickly
+                    outputDiv.style.display = 'block';
+                    outputDiv.style.borderLeftColor = 'var(--accent-orange)';
+                    outputDiv.textContent = `Pending Tx: ${result.hash}`;
+
                     const receipt = await result.wait();
                     logToConsole(`${func.name} successful! Block: ${receipt.blockNumber}`, 'success');
+
+                    // Show success inline
+                    outputDiv.style.borderLeftColor = 'var(--accent-green)';
+                    outputDiv.innerHTML = `<strong style="color:var(--accent-green)">Success!</strong>\nTransaction Hash: ${receipt.hash}\nBlock Number: ${receipt.blockNumber}\nGas Used: ${receipt.gasUsed.toString()}`;
+
+                    // Refresh gas balance automatically after a transaction concludes
+                    await updateWalletUI();
                 }
             } catch (error) {
                 logToConsole(`Revert: error: ${error.shortMessage || error.message}`, 'error');
