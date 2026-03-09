@@ -259,7 +259,7 @@ function generateUI(abi, containerId, contractInstance) {
     functions.forEach(func => {
         const isRead = func.stateMutability === 'view' || func.stateMutability === 'pure';
         const btnClass = isRead ? 'btn-read' : 'btn-write';
-        const labelColor = isRead ? 'var(--accent-cyan-hover)' : 'var(--accent-orange-hover)';
+        const labelColor = isRead ? '#4fb2f0' : '#e8a841'; // match Remix button colors
 
         const group = document.createElement('div');
         group.className = 'form-group doc-group';
@@ -270,6 +270,7 @@ function generateUI(abi, containerId, contractInstance) {
 
         const titleSpan = document.createElement('span');
         titleSpan.textContent = func.name;
+        titleSpan.style.color = labelColor;
 
         const arrowSpan = document.createElement('span');
         arrowSpan.textContent = '▶';
