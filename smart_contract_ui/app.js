@@ -120,7 +120,8 @@ async function updateWalletUI() {
     walletInfoLabel.textContent = isDummyWallet ? "Dummy Wallet (Local)" : "Connected Wallet";
     walletInfoLabel.style.color = isDummyWallet ? "var(--win-min)" : "var(--accent-green)";
 
-    walletInfoAddress.innerHTML = `${walletAddress} <span style="cursor:pointer; margin-left:8px; opacity:0.8; font-size:1rem;" title="Copy Address" onclick="navigator.clipboard.writeText('${walletAddress}'); alert('Wallet Address copied to clipboard!');">📋</span>`;
+    const copyIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-bottom: 2px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+    walletInfoAddress.innerHTML = `${walletAddress} <span style="cursor:pointer; margin-left:8px; opacity:0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" title="Copy Address" onclick="navigator.clipboard.writeText('${walletAddress}'); alert('Wallet Address copied!');">${copyIconSvg}</span>`;
 
     // Fetch and display balance
     try {
@@ -143,6 +144,53 @@ async function updateWalletUI() {
 }
 
 btnConnect.addEventListener('click', connectBrowserProvider);
+
+// -----------------------------------------
+// Utility Tools Setup
+// -----------------------------------------
+const utilityBtn = document.getElementById('utilityBtn');
+const utilityMenu = document.getElementById('utilityMenu');
+const genRandomWalletBtn = document.getElementById('genRandomWalletBtn');
+const randomWalletResult = document.getElementById('randomWalletResult');
+
+utilityBtn.addEventListener('click', () => {
+    utilityMenu.style.display = utilityMenu.style.display === 'none' ? 'flex' : 'none';
+});
+
+// Close utility menu if clicking outside
+document.addEventListener('click', (e) => {
+    if (!utilityBtn.contains(e.target) && !utilityMenu.contains(e.target)) {
+        utilityMenu.style.display = 'none';
+    }
+});
+
+genRandomWalletBtn.addEventListener('click', () => {
+    // Helper to generate the SVG with an inline copy payload
+    const getCopyIcon = (payload) => `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-left: 4px; cursor: pointer; opacity: 0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="navigator.clipboard.writeText('${payload}'); alert('Copied!')"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+
+    // ethers.Wallet.createRandom() creates a new random wallet with a mnemonic
+    const randomWallet = ethers.Wallet.createRandom();
+
+    randomWalletResult.style.display = 'block';
+    randomWalletResult.innerHTML = `
+        <div class="util-row">
+            <span class="util-label">Address:</span>
+            <span class="util-val">${randomWallet.address}</span>
+            ${getCopyIcon(randomWallet.address)}
+        </div>
+        <div class="util-row">
+            <span class="util-label">Private Key:</span>
+            <span class="util-val pkey">${randomWallet.privateKey}</span>
+            ${getCopyIcon(randomWallet.privateKey)}
+        </div>
+        <div class="util-row">
+            <span class="util-label">Mnemonic:</span>
+            <span class="util-val mnemonic">${randomWallet.mnemonic.phrase}</span>
+            ${getCopyIcon(randomWallet.mnemonic.phrase)}
+        </div>
+    `;
+    logToConsole('Generated a new random wallet for testing.', 'info');
+});
 
 // -----------------------------------------
 // Contract Initialization
