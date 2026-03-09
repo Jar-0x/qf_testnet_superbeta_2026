@@ -284,6 +284,13 @@ function getExampleInput(type, name) {
                 isRotated: new Array(150).fill(true)
             });
         }
+        if (name.includes('PassiveResourceInput')) {
+            return JSON.stringify({
+                buildingUIDs: new Array(150).fill(111),
+                resourceIDs: new Array(150).fill(222),
+                lastClaimedTimes: new Array(150).fill(999999)
+            });
+        }
         if (name.includes('MechaLoadoutInput')) {
             return JSON.stringify({
                 mechaIDs: [1, 2, 3, 4, 5],
