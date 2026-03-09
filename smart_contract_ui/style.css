@@ -83,6 +83,8 @@ body.dark-theme {
     align-items: center;
     padding: 1rem 1.5rem;
     margin-bottom: 2rem;
+    position: relative;
+    z-index: 9999;
 }
 
 .brand {
@@ -659,7 +661,8 @@ body.dark-theme {
     top: calc(100% + 8px);
     left: 0;
     width: 380px;
-    z-index: 100;
+    z-index: 9999;
+    /* Increased to ensure it overlays everything */
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -689,8 +692,8 @@ body.dark-theme {
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 4px;
     font-family: var(--font-mono);
-    font-size: 0.5rem;
-    /* Reduced by ~30% */
+    font-size: 0.65rem;
+    /* Increased by ~30% */
 }
 
 .util-row {
@@ -708,8 +711,8 @@ body.dark-theme {
     display: block;
     color: var(--accent-cyan);
     margin-bottom: 0.15rem;
-    font-size: 0.5rem;
-    /* Reduced by ~30% */
+    font-size: 0.65rem;
+    /* Increased by ~30% */
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
