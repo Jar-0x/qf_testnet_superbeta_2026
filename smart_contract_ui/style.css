@@ -233,6 +233,11 @@ body.dark-theme {
     color: var(--accent-red-hover);
 }
 
+.badge-green {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+}
+
 .border-accent {
     border-left: 3px solid var(--accent-red);
 }

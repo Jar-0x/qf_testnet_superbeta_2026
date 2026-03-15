@@ -11,6 +11,7 @@ let isDummyWallet = false;
 let contractA0;
 let contractP0;
 let contractP5;
+let contractQF08;
 
 // DOM Elements
 const consoleOutput = document.getElementById('consoleOutput');
@@ -201,6 +202,7 @@ function initContracts() {
     contractA0 = new ethers.Contract(DIAMOND_ADDRESS, window.A0_ABI, signer);
     contractP0 = new ethers.Contract(DIAMOND_ADDRESS, window.P0_ABI, signer);
     contractP5 = new ethers.Contract(DIAMOND_ADDRESS, window.P5_ABI, signer);
+    contractQF08 = new ethers.Contract(DIAMOND_ADDRESS, window.QF08_ABI, signer);
 
     logToConsole('Contract interfaces initialized locally.', 'info');
 
@@ -208,6 +210,7 @@ function initContracts() {
     generateUI(window.A0_ABI, 'a0-body', contractA0);
     generateUI(window.P5_ABI, 'p5-body', contractP5);
     generateUI(window.P0_ABI, 'p0-body', contractP0);
+    generateUI(window.QF08_ABI, 'qf08-body', contractQF08);
 }
 
 // -----------------------------------------
@@ -405,6 +408,26 @@ function generateUI(abi, containerId, contractInstance) {
             funcBody.appendChild(noArgs);
         }
 
+        // Add value (AVAX) input for payable functions
+        const isPayable = func.stateMutability === 'payable';
+        let payableInputId = null;
+        if (isPayable) {
+            const payableRow = document.createElement('div');
+            payableRow.className = 'input-row-remix';
+            const payableLabel = document.createElement('label');
+            payableLabel.textContent = 'value (AVAX):';
+            payableLabel.style.color = 'var(--accent-orange)';
+            const payableInput = document.createElement('input');
+            payableInputId = `${containerId}-${func.name}-payable-value`;
+            payableInput.type = 'text';
+            payableInput.id = payableInputId;
+            payableInput.className = 'input-field';
+            payableInput.placeholder = 'e.g. 0.1';
+            payableRow.appendChild(payableLabel);
+            payableRow.appendChild(payableInput);
+            funcBody.appendChild(payableRow);
+        }
+
         const btn = document.createElement('button');
         btn.className = `btn ${btnClass} exec-btn`;
         btn.textContent = isRead ? 'call' : 'transact';
@@ -434,6 +457,14 @@ function generateUI(abi, containerId, contractInstance) {
 
                 // Filter out undefined arguments if they left it blank (though ethers might revert if expecting args)
                 const cleanArgs = args.filter(a => a !== undefined);
+
+                // For payable functions, add tx overrides with value
+                if (isPayable && payableInputId) {
+                    const payableVal = document.getElementById(payableInputId).value;
+                    if (payableVal) {
+                        cleanArgs.push({ value: ethers.parseEther(payableVal) });
+                    }
+                }
 
                 logToConsole(`Executing ${func.name}(${cleanArgs.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(', ')})...`, 'pending');
                 const result = await contractInstance[func.name](...cleanArgs);

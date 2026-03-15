@@ -109,6 +109,18 @@
                     </div>
                 </section>
 
+                <!-- Gasless System (08) -->
+                <section class="panel glass-panel" id="panel-gasless">
+                    <div class="panel-header" style="cursor: pointer;" onclick="togglePanel('qf08-body')"
+                        title="Click to collapse/expand">
+                        <h2>08_QF_Gasless_A</h2>
+                        <span class="badge badge-green">08 Contract ▶</span>
+                    </div>
+                    <div class="panel-body" id="qf08-body" style="display: none;">
+                        <!-- Dynamic functions will be injected here -->
+                    </div>
+                </section>
+
             </div>
 
             <!-- Right Column: Console UI -->
@@ -133,6 +145,7 @@
     <script src="A0_QF_RegistrationAccount_A.js"></script>
     <script src="P0_QF_HandshakingWrite_A.js"></script>
     <script src="P5_QF_HandshakingRead_A.js"></script>
+    <script src="08_QF_Gasless_A.js"></script>
 
     <!-- Main App Logic -->
     <script src="app.js"></script>
